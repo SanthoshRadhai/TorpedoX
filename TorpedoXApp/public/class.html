@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamBlock Classifier</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Classical Identifier</h1>
+        <textarea id="ciphertext" placeholder="Enter ciphertext..." rows="10" cols="50"></textarea>
+        <br>
+        <button onclick="analyzeCipher()">Analyze</button>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function analyzeCipher() {
+            const ciphertext = document.getElementById('ciphertext').value;
+
+            // Validate input
+            if (!ciphertext.trim()) {
+                alert('Please enter some ciphertext.');
+                return;
+            }
+
+            // Send ciphertext to the server
+            fetch('/ClassicalIdentifier', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ciphertext })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the result
+                document.getElementById('result').innerText = `Prediction: ${data.result}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerText = 'An error occurred while analyzing the ciphertext.';
+            });
+        }
+    </script>
+</body>
+</html>

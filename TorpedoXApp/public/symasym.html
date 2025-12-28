@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symmetric/Asymmetric Classifier</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Symmetric/Asymmetric Classifier</h1>
+    <p id="result">Loading...</p>
+
+    <!-- Next button that will appear only after analyzing -->
+    <button id="nextButton" style="display:none;" onclick="moveToNextPage()">Next</button>
+    <script>
+        let analysisResult = ''; // Variable to store the result
+    
+        // Function to get the query parameter from the URL
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+    
+        // Function to convert a string to hexadecimal format
+// Function to convert a string to hexadecimal format with space-separated values
+function toHexadecimal(str) {
+    let hex = '';
+    for (let i = 0; i < str.length; i++) {
+        hex += str.charCodeAt(i).toString(16).padStart(2, '0') + ' '; // Add a space after each pair of hex digits
+    }
+    return hex.trim(); // Trim the trailing space
+}
+    
+        // Get the ciphertext from the URL query parameter 'result'
+        const ciphertext = getQueryParam('result');
+    
+        if (ciphertext) {
+            const hexCiphertext = toHexadecimal(ciphertext); 
+            console.log("The hexCIPHER IS" , hexCiphertext); // Convert ciphertext to hexadecimal
+    
+            // Send the hexadecimal ciphertext for analysis
+            fetch('/SymAsymTester', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ciphertext: hexCiphertext })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the result
+                document.getElementById('result').innerText = data.result;
+                analysisResult = data.result; // Store the result
+    
+                // Show the Next button after analysis
+                document.getElementById('nextButton').style.display = 'inline-block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        } else {
+            // If no ciphertext parameter in the URL, show an error message
+            document.getElementById('result').innerText = 'No ciphertext provided in the URL.';
+        }
+    
+        function moveToNextPage() {
+            // Redirect based on the analysis result, including passing the result in the URL
+            if (analysisResult === "Symmetric") {
+                window.location.href = `streamblock.html?result=${encodeURIComponent(ciphertext)}`;
+            } else {
+                window.location.href = `asym.html?result=${encodeURIComponent(ciphertext)}`;
+            }
+        }
+    </script>
+    
+</body>
+</html>

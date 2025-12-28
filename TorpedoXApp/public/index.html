@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptaLysis - Hash Analysis Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 100%);
+            color: #e0e0e0;
+            font-family: 'Orbitron', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease-in;
+        }
+
+        h1 {
+            color: #00d4ff;
+            font-size: 2.8em;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: #778da9;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        .upload-section {
+            background: rgba(27, 38, 59, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+            border: 1px solid #415a77;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-section:hover {
+            transform: translateY(-5px);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            background: linear-gradient(45deg, #00d4ff, #007bff);
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .file-label:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        button[type="submit"] {
+            background: linear-gradient(45deg, #ff6b6b, #ff8787);
+            border: none;
+            padding: 12px 35px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+        }
+
+        button[type="submit"]:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+
+        .results-section {
+            background: rgba(27, 38, 59, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #415a77;
+        }
+
+        h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        pre {
+            background: #0d1b2a;
+            padding: 15px;
+            border-radius: 10px;
+            color: #00ff9f;
+            font-family: 'Courier New', monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px dashed #415a77;
+        }
+
+        #nextButton {
+            background: linear-gradient(45deg, #4caf50, #6cd66f);
+            border: none;
+            padding: 12px 35px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+            display: none;
+            margin: 20px auto;
+            display: block;
+        }
+
+        #nextButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .upload-section {
+                padding: 20px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CryptaLysis</h1>
+            <p class="subtitle">Advanced Hash Identification & Cryptanalysis Tool</p>
+        </header>
+
+        <div class="upload-section">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <label for="fileInput" class="file-label">Select File</label>
+                <input type="file" name="file" id="fileInput" required />
+                <button type="submit">Analyze</button>
+            </form>
+        </div>
+
+        <div class="results-section" id="fileText">
+            <h2>Extracted Text</h2>
+            <pre id="textContent"></pre>
+        </div>
+
+        <div class="results-section" id="hashResult">
+            <h2>Hash Algorithm Analysis</h2>
+            <p id="hashResultText"></p>
+        </div>
+
+        <button id="nextButton">Proceed to Decryption</button>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+    
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+    
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+    
+            const data = await response.json();
+            if (data.success) {
+                let extractedText = data.text.replace(/\s+/g, '').trim();
+                document.getElementById('textContent').textContent = extractedText;
+                document.getElementById('hashResultText').textContent = data.hashResult;
+                document.getElementById('nextButton').style.display = 'block';
+    
+                document.getElementById('nextButton').addEventListener('click', () => {
+                    if (data.hashResult === "Hash Algorithm: Not Found") {
+                        window.location.href = `classical.html?text=${encodeURIComponent(extractedText)}`;
+                    } else {
+                        window.location.href = `index1.html?text=${encodeURIComponent(extractedText)}`;
+                    }
+                });
+            } else {
+                document.getElementById('textContent').textContent = 'Analysis failed.';
+            }
+        });
+    </script>
+</body>
+</html>

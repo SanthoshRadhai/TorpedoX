@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classical Classifier</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Classical Classifier</h1>
+    <p id="outputText">Loading...</p>
+    
+    <!-- Next button that will appear only after analyzing -->
+    <button id="nextButton" style="display:none;" onclick="moveToNextPage()">Next</button>
+
+    <script>
+        let analysisResult = ''; // Variable to store the result
+
+        // Function to get the query parameter from the URL
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Get the text from the URL query parameter 'text'
+        const extractedText = getQueryParam('text');
+
+        if (extractedText) {
+            // Send the extracted text for analysis
+            fetch('/ClasMod', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: extractedText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the result
+                document.getElementById('outputText').innerText = data.result;
+                analysisResult = data.result; // Store the result
+
+                // Show the Next button after analysis
+                document.getElementById('nextButton').style.display = 'inline-block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        } else {
+            // If no text parameter in the URL, show an error message
+            document.getElementById('outputText').innerText = 'No text provided in the URL.';
+        }
+
+        function moveToNextPage() {
+            // Redirect based on the analysis result, including passing the result in the URL
+            if (analysisResult === "Modern Cipher") {
+                window.location.href = `symasym.html?result=${encodeURIComponent(extractedText)}`;
+            } else {
+                window.location.href = `class.html?result=${encodeURIComponent(extractedText)}`;
+            }
+        }
+    </script>
+</body>
+</html>

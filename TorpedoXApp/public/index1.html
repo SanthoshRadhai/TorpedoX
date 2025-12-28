@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Identification Results</title>
+    <style>
+        /* Overall body styling */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+            margin: 0;
+        }
+
+        /* Header Styling */
+        h1 {
+            color: #00aaff;
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+
+        /* Box styling */
+        .box {
+            background-color: #262626;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 45%;
+            float: left;
+            margin-right: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .box h2 {
+            margin-top: 0;
+            color: #00aaff;
+        }
+
+        /* Text styling within the box */
+        .box p {
+            color: #d1d1d1;
+            font-size: 1rem;
+            white-space: pre-wrap; /* Keeps the format of extracted text */
+        }
+
+        /* Clear float after boxes */
+        .clear {
+            clear: both;
+        }
+
+        /* Next Button styling */
+        #nextButton {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #00aaff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #nextButton:hover {
+            background-color: #0099cc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hash Identification Results</h1>
+
+    <div class="box" id="manualBox">
+        <h2>Manual</h2>
+        <p id="resultText1"></p> <!-- This will show the result for manual logic -->
+    </div>
+
+    <div class="box" id="mlBox">
+        <h2>Machine Learning</h2>
+        <p id="resultText2"></p> <!-- This will show the result for ML logic -->
+    </div>
+
+    <div class="clear"></div>
+
+    <script>
+        // Get the text passed in the URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const extractedText = urlParams.get('text');
+
+        if (extractedText) {
+            // Display the extracted text in the manual box
+            document.getElementById('resultText1').textContent = extractedText;
+            var text = extractedText;  // Make sure the 'text' variable is set
+        } else {
+            document.getElementById('resultText1').textContent = 'No extracted text available.';
+        }
+
+        window.onload = async function() {
+    if (text) {
+        // Send the extracted text to the server for hash validation
+        const responseHash = await fetch('/validate_hash', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+
+        const dataHash = await responseHash.json();
+
+        // Display the result of hash validation in the Manual box
+        document.getElementById('resultText1').textContent = dataHash.validationResult || 'No result from hash validation.';
+
+        // Now send the text for Machine Learning logic
+        const responseML = await fetch('/ml_logic', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+
+        const dataML = await responseML.json();
+
+        // Check if ML result is an object, and convert it to a readable string
+        if (dataML.mlResult && typeof dataML.mlResult === 'object') {
+            // If it's an object, convert it to a readable string using JSON.stringify
+            document.getElementById('resultText2').textContent = JSON.stringify(dataML.mlResult, null, 2);
+        } else {
+            // If it's already a string or doesn't have the 'mlResult' property, display it directly
+            document.getElementById('resultText2').textContent = dataML.mlResult || 'No result from machine learning logic.';
+        }
+    } else {
+        document.getElementById('resultText1').textContent = 'No text available for validation.';
+        document.getElementById('resultText2').textContent = 'No text available for machine learning analysis.';
+    }
+};
+    </script>
+</body>
+</html>
